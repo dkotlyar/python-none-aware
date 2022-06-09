@@ -19,17 +19,27 @@ class Maybe:
     def __json__(self):
         return self._value_
 
-    def __getattr__(self, name):
-        if self._value_ is None:
-            return Maybe(None)
+    def __custom_getattr__(self, name):
         if hasattr(self._value_, name):
             attr = getattr(self._value_, name)
             if hasattr(attr, '__call__'):
                 attr = attr.__call__()
-            return Maybe(attr, strict=self._strict_)
-        if not self._strict_:
-            return self.__getitem__(name)
-        return Maybe(None)
+            return attr
+
+    def __custom_getitem(self, item):
+        if hasattr(self._value_, '__getitem__'):
+            try:
+                return self._value_[item]
+            except (IndexError, KeyError, TypeError):
+                return None
+
+    def __getattr__(self, name):
+        if self._value_ is None:
+            return Maybe(None)
+        attr = self.__custom_getattr__(name)
+        if attr is None and not self._strict_:
+            attr = self.__custom_getitem(name)
+        return Maybe(attr, strict=self._strict_)
 
     def __setattr__(self, key, value):
         if key in self.__dict__:
@@ -41,14 +51,10 @@ class Maybe:
     def __getitem__(self, item):
         if self._value_ is None:
             return Maybe(None)
-        if hasattr(self._value_, '__getitem__'):
-            try:
-                return Maybe(self._value_[item], strict=self._strict_)
-            except (IndexError, KeyError, TypeError):
-                return Maybe(None)
-        if not self._strict_:
-            return self.__getattr__(item)
-        return Maybe(None)
+        item = self.__custom_getitem(item)
+        if item is None and not self._strict_:
+            item = self.__custom_getitem(item)
+        return Maybe(item, strict=self._strict_)
 
     def __setitem__(self, key, value):
         assert self._value_ is not None
