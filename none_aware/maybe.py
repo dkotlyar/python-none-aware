@@ -44,7 +44,7 @@ class Maybe:
         if hasattr(self._value_, '__getitem__'):
             try:
                 return Maybe(self._value_[item], strict=self._strict_)
-            except (IndexError, KeyError):
+            except (IndexError, KeyError, TypeError):
                 return Maybe(None)
         if not self._strict_:
             return self.__getattr__(item)
