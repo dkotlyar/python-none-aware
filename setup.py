@@ -1,11 +1,14 @@
 from setuptools import setup, find_packages
 
+import none_aware
+
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(
     name='none-aware',
-    version='0.0.1',
+    version=none_aware.__version__,
+    license='MIT',
     author='Dmitry Kotlyar',
     author_email='dm.kotlyar@yandex.ru',
     description='Package provided none-aware wrapper for none-safety object manipulation.',
